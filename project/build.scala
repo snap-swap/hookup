@@ -18,7 +18,7 @@ object HookupBuild extends Build {
       "commons-io" % "commons-io" % "2.1",
       "com.typesafe.akka" % "akka-actor_2.10.0-RC5" % "2.1.0-RC6" % "compile",
       "com.typesafe.akka" % "akka-testkit_2.10.0-RC5" % "2.1.0-RC6" % "test",
-      "org.specs2" %% "specs2" % "1.13" % "test",
+      "org.specs2" %% "specs2" % "1.14" % "test",
       "junit" % "junit" % "4.11" % "test"
     ),
     resolvers += "Typesafe Releases" at "http://repo.typesafe.com/typesafe/releases",

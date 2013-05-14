@@ -10,7 +10,7 @@ import akka.util.Timeout
 import java.net.{InetSocketAddress, SocketAddress, ServerSocket, Socket}
 import java.io.{BufferedReader, PrintWriter, InputStreamReader}
 import java.util.concurrent.{TimeUnit, CountDownLatch, TimeoutException}
-import akka.dispatch.{Future, Await}
+import scala.concurrent.{Future, Await}
 
 
 class NoopWireformat(val name: String, val supportsAck: Boolean = false) extends WireFormat {
@@ -81,7 +81,7 @@ class ServerConfigurationsExample extends Specification with NoTimeConversions {
       }
       /// end_code_ref
     } catch {
-      case _ =>
+      case _ : Throwable =>
     }
     success
   }
@@ -103,7 +103,7 @@ class ServerConfigurationsExample extends Specification with NoTimeConversions {
   def serverWithFlashPolicy = {
     val latch = new CountDownLatch(1)
     val port =  {
-      val s = new ServerSocket(0);
+      val s = new ServerSocket(0)
       try { s.getLocalPort } finally { s.close() }
     }
     import HookupClient.executionContext
@@ -115,7 +115,7 @@ class ServerConfigurationsExample extends Specification with NoTimeConversions {
     }
     /// end_code_ref
     server onStart {
-      latch.countDown
+      latch.countDown()
     }
     server.start
     latch.await(2, TimeUnit.SECONDS) must beTrue and {

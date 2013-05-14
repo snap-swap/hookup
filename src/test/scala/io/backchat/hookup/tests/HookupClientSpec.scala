@@ -4,15 +4,15 @@ package tests
 import org.specs2.Specification
 import org.specs2.time.NoTimeConversions
 import net.liftweb.json.DefaultFormats
-import org.specs2.execute.Result
+import org.specs2.execute.{AsResult, Result}
 import java.net.{ServerSocket, URI}
 import akka.testkit._
 import akka.actor.ActorSystem
 import net.liftweb.json.JsonAST.{JField, JString, JObject}
 import scala.concurrent.duration._
 import org.specs2.specification.{Around, Step, Fragments}
-import akka.dispatch.{ExecutionContext, Await}
-import akka.jsr166y.ForkJoinPool
+import scala.concurrent.{ExecutionContext, Await}
+import scala.concurrent.forkjoin.ForkJoinPool
 import java.lang.Thread.UncaughtExceptionHandler
 import java.util.concurrent.{TimeUnit, TimeoutException}
 
@@ -56,7 +56,7 @@ trait HookupClientSpecification  {
 
 
   val serverAddress = {
-    val s = new ServerSocket(0);
+    val s = new ServerSocket(0)
     try { s.getLocalPort } finally { s.close() }
   }
   def server: Server
@@ -82,7 +82,7 @@ trait HookupClientSpecification  {
       try {
         Await.ready(client.disconnect(), 2 seconds)
         clientExecutor.shutdownNow()
-      } catch { case e => e.printStackTrace() }
+      } catch { case e : Throwable => e.printStackTrace() }
     }
   }
 
@@ -119,11 +119,11 @@ class HookupClientSpec extends Specification with NoTimeConversions { def is =
 
     val server = HookupClientSpecification.newServer(serverAddress, defaultProtocol)
 
-    def around[T <% Result](t: => T) = {
+    def around[T : AsResult](t: => T) = {
       server.start
       val r = t
       server.stop
-      r
+      AsResult(r)
     }
 
     def connectsToServer = this {
@@ -137,7 +137,7 @@ class HookupClientSpec extends Specification with NoTimeConversions { def is =
       val latch = TestLatch()
       withWebSocket({
         case (client, Connected) => client send JObject(JField("hello", JString("world")) :: Nil)
-        case (client, JsonMessage(JObject(JField("hello", JString("world")) :: Nil))) => latch.open
+        case (client, JsonMessage(JObject(JField("hello", JString("world")) :: Nil))) => latch.open()
       }) { _ => Await.result(latch, 5 seconds) must not(throwA[TimeoutException]) }
     }
 
@@ -152,7 +152,7 @@ class HookupClientSpec extends Specification with NoTimeConversions { def is =
       val latch = TestLatch()
       withWebSocket({
         case (client, Connected) => client send JObject(JField("hello", JString("world")) :: Nil)
-        case (client, JsonMessage(JObject(JField("hello", JString("world")) :: Nil))) => latch.open
+        case (client, JsonMessage(JObject(JField("hello", JString("world")) :: Nil))) => latch.open()
       }, HookupClientConfig(uri)) { _ => Await.result(latch, 5 seconds) must not(throwA[TimeoutException]) }
     }
 

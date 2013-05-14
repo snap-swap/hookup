@@ -149,7 +149,7 @@ object HookupClient {
     val wireFormat = new AtomicReference[WireFormat](settings.defaultProtocol)
 
     def isConnected =
-      channel != null && channel.isConnected && _isConnected.isCompleted && _isConnected.value.get == Right(Success)
+      channel != null && channel.isConnected && _isConnected.isCompleted && _isConnected.future.value.isDefined && _isConnected.future.value.get.isSuccess
 
     private def configureBootstrap() {
       val self = this
@@ -216,13 +216,13 @@ object HookupClient {
           val fut = af flatMap { _ ⇒
             isReconnecting = false
 
-            _isConnected
+            _isConnected.future
           }
 
           buffer foreach (_.open())
           Await.ready(af, 5 seconds)
         } catch {
-          case ex ⇒ {
+          case ex : Throwable ⇒ {
             logger.error("Couldn't connect, killing all")
             reconnect()
           }
@@ -322,7 +322,7 @@ object HookupClient {
           try {
             if (!isReconnecting && bootstrap != null) {
               val thread = new Thread {
-                override def run = {
+                override def run() {
                   timer.stop.asScala foreach (_.cancel())
                   bootstrap.releaseExternalResources()
                 }
@@ -332,7 +332,7 @@ object HookupClient {
               thread.join()
             }
           } catch {
-            case e ⇒ logger.error("error while closing the connection", e)
+            case e : Throwable ⇒ logger.error("error while closing the connection", e)
           } finally {
             if (!closing.isCompleted) closing.success(Success)
           }

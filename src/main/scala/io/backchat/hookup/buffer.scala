@@ -130,7 +130,7 @@ class FileBuffer private[hookup] (file: File, writeToFile: Boolean, memoryBuffer
           memoryBuffer.offer(msg)
       }
     } catch {
-      case e =>
+      case e : Throwable =>
         memoryBuffer.offer(msg)
         throw e
     }
@@ -175,7 +175,7 @@ class FileBuffer private[hookup] (file: File, writeToFile: Boolean, memoryBuffer
       append = false
       res
     } catch {
-      case e ⇒
+      case e : Throwable ⇒
         e.printStackTrace()
         Future.failed(e)
     } finally {
