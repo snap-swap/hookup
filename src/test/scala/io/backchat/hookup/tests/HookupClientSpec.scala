@@ -9,7 +9,7 @@ import java.net.{ServerSocket, URI}
 import akka.testkit._
 import akka.actor.ActorSystem
 import net.liftweb.json.JsonAST.{JField, JString, JObject}
-import akka.util.duration._
+import scala.concurrent.duration._
 import org.specs2.specification.{Around, Step, Fragments}
 import akka.dispatch.{ExecutionContext, Await}
 import akka.jsr166y.ForkJoinPool

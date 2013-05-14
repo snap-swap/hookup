@@ -1,10 +1,11 @@
 package io.backchat
 
-import akka.dispatch.{ ExecutionContext, Promise, Future }
+import scala.concurrent.{ ExecutionContext, Promise, Future }
 import org.jboss.netty.channel.{ Channel, ChannelFutureListener, ChannelFuture }
 import net.liftweb.json.JsonAST.JValue
-import akka.util.Duration
+import scala.concurrent.duration.Duration
 import java.util.concurrent.TimeUnit
+import scala.util.Try
 import org.jboss.netty.logging.{Slf4JLoggerFactory, InternalLoggerFactory}
 import net.liftweb.json.DefaultFormats
 import reflect.BeanProperty
@@ -75,26 +76,23 @@ package object hookup {
   }
 
   /**
-   * An implicit conversion from a [[org.jboss.netty.channel.ChannelFuture]] to an [[akka.dispatch.Future]]
+   * An implicit conversion from a [[org.jboss.netty.channel.ChannelFuture]] to an [[scala.concurrent.Future]]
    * @param fut The [[org.jboss.netty.channel.ChannelFuture]]
-   * @return A [[akka.dispatch.Future]]
+   * @return A [[scala.concurrent.Future]]
    */
   implicit def channelFutureToAkkaFuture(fut: ChannelFuture) = new {
 
     def toAkkaFuture(implicit context: ExecutionContext): Future[OperationResult] = {
       val res = Promise[OperationResult]()
       fut.addListener(new ChannelFutureListener {
-        def operationComplete(future: ChannelFuture) {
+        def operationComplete(future: ChannelFuture): Unit = res complete Try(
           if (future.isSuccess) {
-            res.success(Success)
-          } else if (fut.isCancelled) {
-            res.success(Cancelled)
-          } else {
-            res.failure(future.getCause)
-          }
-        }
+            Success
+          } else if (future.isCancelled) {
+            Cancelled
+          } else throw future.getCause)
       })
-      res
+      res.future
     }
   }
 

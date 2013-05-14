@@ -3,7 +3,7 @@ package tests
 
 import org.specs2.Specification
 import org.specs2.specification.{Step, Fragments, After}
-import akka.util.duration._
+import scala.concurrent.duration._
 import akka.dispatch.{Await, ExecutionContext, Promise}
 import org.specs2.time.NoTimeConversions
 import org.specs2.execute.Result

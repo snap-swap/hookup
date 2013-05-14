@@ -19,18 +19,19 @@ import org.jboss.netty.handler.timeout.IdleStateHandler
 import net.liftweb.json._
 import JsonDSL._
 import java.util.concurrent.{ ConcurrentHashMap, ConcurrentLinkedQueue, TimeUnit, Executors }
-import akka.util.Timeout
+import scala.concurrent.duration.Duration
 import org.jboss.netty.buffer.ChannelBuffers
 import org.jboss.netty.util.{ CharsetUtil, Timeout ⇒ NettyTimeout, TimerTask, HashedWheelTimer }
 import com.typesafe.config.Config
 import akka.actor.{Actor, ActorRef, Cancellable}
 import org.jboss.netty.handler.codec.http.HttpHeaders._
-import akka.dispatch.{ExecutionContext, Promise, Future}
+import scala.concurrent.{ExecutionContext, Promise, Future}
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicReference, AtomicLong}
 import java.io.{FileNotFoundException, FileInputStream, File}
 import server.{DropUnhandledRequests, FlashPolicyHandler}
 import java.nio.channels.ClosedChannelException
 import org.jboss.netty.handler.stream.ChunkedWriteHandler
+import scala.concurrent.duration.FiniteDuration
 
 
 /**
@@ -202,7 +203,7 @@ object HookupServer {
         Future.sequence(futures).map(r ⇒ ResultList(r.toList))
       } else {
         _buffer offer message
-        Promise.successful(Success)
+        Future.successful(Success)
       }
     }
 
@@ -217,7 +218,7 @@ object HookupServer {
      *
      * @param msg The [[io.backchat.hookup.OutboundMessage]] to broadcast
      * @param onlyTo The filter to determine the connections to send to. Defaults to all but self.
-     * @return A [[akka.dispatch.Future]] with the [[io.backchat.hookup.OperationResult]]
+     * @return A [[scala.concurrent.Future]] with the [[io.backchat.hookup.OperationResult]]
      */
     final def broadcast(msg: OutboundMessage, onlyTo: BroadcastFilter = SkipSelf): Future[OperationResult] = {
       if (_handler != null) {
@@ -229,7 +230,7 @@ object HookupServer {
         Future.sequence(futures.toList) map ResultList.apply
       } else {
         _broadcastBuffer.offer((msg, onlyTo))
-        Promise.successful(Success)
+        Future.successful(Success)
       }
     }
 
@@ -247,7 +248,7 @@ object HookupServer {
 
     final def disconnect() = {
       if (_handler != null) _handler.close()
-      else Promise.successful(Success)
+      else Future.successful(Success)
     }
 
   }
@@ -286,7 +287,7 @@ object HookupServer {
      *
      * @param msg The [[io.backchat.hookup.OutboundMessage]] to broadcast
      * @param matchingOnly The filter to determine the connections to send to. Defaults to all but self.
-     * @return A [[akka.dispatch.Future]] with the [[io.backchat.hookup.OperationResult]]
+     * @return A [[scala.concurrent.Future]] with the [[io.backchat.hookup.OperationResult]]
      */
     final def broadcast(msg: OutboundMessage, matchingOnly: BroadcastFilter) = broadcaster(msg, matchingOnly)
 
@@ -681,7 +682,7 @@ object HookupServer {
       }
     }
 
-    private[this] def createAck(ctx: ChannelHandlerContext, message: Ackable, timeout: Timeout) = {
+    private[this] def createAck(ctx: ChannelHandlerContext, message: Ackable, timeout: Duration) = {
       val id = messageCounter.incrementAndGet()
       val (ct, data) = contentFrom(message)
       val msg: JValue =
@@ -695,7 +696,7 @@ object HookupServer {
         def run(timeout: NettyTimeout) {
           if (!timeout.isCancelled) Channels.fireMessageReceived(ctx, AckFailed(message.asInstanceOf[OutboundMessage]))
         }
-      }, timeout.duration.toMillis, TimeUnit.MILLISECONDS)
+      }, timeout.toMillis, TimeUnit.MILLISECONDS)
       val exp = new WebSocketCancellable(to)
       while (expectedAcks.put(id, exp) != null) { // spin until we've updated
 

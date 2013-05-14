@@ -3,7 +3,7 @@ package examples
 
 import org.specs2.Specification
 import org.specs2.time.NoTimeConversions
-import akka.util.duration._
+import scala.concurrent.duration._
 import akka.testkit._
 import net.liftweb.json.{Formats, DefaultFormats}
 import akka.util.Timeout

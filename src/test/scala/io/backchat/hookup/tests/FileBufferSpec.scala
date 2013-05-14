@@ -11,7 +11,7 @@ import collection.JavaConverters._
 import org.specs2.specification.{Fragments, Step}
 import java.util.concurrent.{Executors, ConcurrentLinkedQueue}
 import akka.dispatch.{Await, Future, ExecutionContext}
-import akka.util.duration._
+import scala.concurrent.duration._
 import akka.actor.ActorSystem
 import collection.mutable.{ArrayBuffer, Buffer, SynchronizedBuffer, ListBuffer}
 import java.util.concurrent.atomic.AtomicInteger
