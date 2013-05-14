@@ -1,6 +1,8 @@
 import xml.Group
 // import scalariform.formatter.preferences._
 
+scalaVersion  := "2.10.0"
+
 publishMavenStyle := true
 
 publishTo <<= version { (v: String) =>
@@ -71,7 +73,13 @@ seq(buildInfoSettings: _*)
 
 sourceGenerators in Compile <+= buildInfo
 
-buildInfoKeys := Seq[Scoped](name, version, scalaVersion, sbtVersion)
+buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion)
 // buildInfoKeys := Seq[Scoped](name, version, scalaVersion, sbtVersion)
 
 buildInfoPackage <<= organization
+
+resolvers ++= Seq(
+  "spray repo" at "http://repo.spray.io/",
+  "snapswap repo" at "http://dev.snapswap.vc/artifactory/libs-release/"
+)
+
