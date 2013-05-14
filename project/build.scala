@@ -36,7 +36,7 @@ object HookupBuild extends Build {
         System.setProperty("java.util.logging.config.file", new File(rt, "logging.properties").getAbsolutePath)
       }
     },
-    javacOptions ++= Seq("-Xlint:unchecked", "-source", "1.7", "-target", "1.7")
+    javacOptions ++= Seq("-Xlint:unchecked", "-source", "1.7", "-target", "1.7", "-encoding", "UTF-8")
    // externalResolvers <<= resolvers map { rs =>
    //   Resolver.withDefaultResolvers(rs, mavenCentral = true, scalaTools = false)
    // }
