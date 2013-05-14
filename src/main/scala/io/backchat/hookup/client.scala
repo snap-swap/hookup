@@ -149,7 +149,7 @@ object HookupClient {
     val wireFormat = new AtomicReference[WireFormat](settings.defaultProtocol)
 
     def isConnected =
-      channel != null && channel.isConnected && _isConnected.isCompleted && _isConnected.value.get == Right(Success)
+      channel != null && channel.isConnected && _isConnected.isCompleted && _isConnected == Right(Success)
 
     private def configureBootstrap() {
       val self = this
@@ -216,7 +216,7 @@ object HookupClient {
           val fut = af flatMap { _ ⇒
             isReconnecting = false
 
-            _isConnected
+            _isConnected.future
           }
 
           buffer foreach (_.open())
