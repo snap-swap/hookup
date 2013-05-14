@@ -20,10 +20,10 @@ import akka.util.Timeout
 import java.net.{ ConnectException, InetSocketAddress, URI }
 import java.nio.channels.ClosedChannelException
 import net.liftweb.json.JsonAST.JValue
-import net.liftweb.json.{JsonParser, DefaultFormats, Formats, parse, render, compact}
-import java.io.{Closeable, File}
+import net.liftweb.json.{JsonParser, DefaultFormats, parse, render, compact}
+import java.io.Closeable
 import java.util.concurrent.{ConcurrentSkipListSet, TimeUnit, Executors}
-import reflect.BeanProperty
+import scala.beans.BeanProperty
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicReference, AtomicLong}
 
 /**
