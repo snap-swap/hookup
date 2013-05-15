@@ -15,6 +15,7 @@ import scala.concurrent.{ExecutionContext, Await}
 import scala.concurrent.forkjoin.ForkJoinPool
 import java.lang.Thread.UncaughtExceptionHandler
 import java.util.concurrent.{TimeUnit, TimeoutException}
+import scala.collection.mutable
 
 object HookupClientSpecification {
 
@@ -40,7 +41,7 @@ object HookupClientSpecification {
       new HookupServerClient {
         def receive = {
           case TextMessage(text) ⇒ send(text)
-          case JsonMessage(json) => send(json)
+          case JsonMessage(json) ⇒ send(json)
         }
       }
     }
@@ -53,7 +54,6 @@ object HookupClientSpecification {
 }
 
 trait HookupClientSpecification  {
-
 
   val serverAddress = {
     val s = new ServerSocket(0)
@@ -135,10 +135,14 @@ class HookupClientSpec extends Specification with NoTimeConversions { def is =
 
     def exchangesJsonMessages = this {
       val latch = TestLatch()
+      val errors = mutable.ArrayBuffer[String]()
       withWebSocket({
         case (client, Connected) => client send JObject(JField("hello", JString("world")) :: Nil)
         case (client, JsonMessage(JObject(JField("hello", JString("world")) :: Nil))) => latch.open()
+        case (client, Disconnected(_)) =>
+        case (client, unhandled) => errors += "client requests jsonProtocol and receives unexpected " + unhandled
       }) { _ => Await.result(latch, 5 seconds) must not(throwA[TimeoutException]) }
+      errors must beEmpty
     }
 
     def connectsToServerSimpleJson = this {
@@ -150,10 +154,14 @@ class HookupClientSpec extends Specification with NoTimeConversions { def is =
 
     def exchangesJsonMessagesSimpleJson = this {
       val latch = TestLatch()
+      val errors = mutable.ArrayBuffer[String]()
       withWebSocket({
         case (client, Connected) => client send JObject(JField("hello", JString("world")) :: Nil)
         case (client, JsonMessage(JObject(JField("hello", JString("world")) :: Nil))) => latch.open()
+        case (client, Disconnected(_)) =>
+        case (client, unhandled) => errors += "client requests jsonProtocol and receives unexpected " + unhandled
       }, HookupClientConfig(uri)) { _ => Await.result(latch, 5 seconds) must not(throwA[TimeoutException]) }
+      errors must beEmpty
     }
 
     def pendingSpec = pending
